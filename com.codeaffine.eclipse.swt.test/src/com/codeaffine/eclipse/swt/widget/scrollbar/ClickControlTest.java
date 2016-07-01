@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollbar;
 
 import static com.codeaffine.eclipse.swt.test.util.SWTEventHelper.trigger;
@@ -12,7 +22,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -91,6 +103,54 @@ public class ClickControlTest {
     Image actual = clickControl.getControl().getImage();
 
     assertThat( actual.getBounds() ).isEqualTo( expectedImageBounds( WIDTH, HEIGHT ) );
+  }
+
+  @Test
+  public void setForeground() {
+    ImageData first = renderImageWithForeground( displayHelper.getDisplay().getSystemColor( SWT.COLOR_RED ) );
+    ImageData second = renderImageWithForeground( displayHelper.getDisplay().getSystemColor( SWT.COLOR_GREEN ) );
+
+    assertThat( first.data ).isNotEqualTo( second.data );
+  }
+
+  @Test
+  public void getForeground() {
+    Color expected = displayHelper.getDisplay().getSystemColor( SWT.COLOR_RED );
+
+    clickControl.setForeground( expected );
+    Color actual = clickControl.getForeground();
+
+    assertThat( actual ).isEqualTo( expected );
+  }
+
+  @Test
+  public void setBackground() {
+    ImageData first = renderImageWithBackground( displayHelper.getDisplay().getSystemColor( SWT.COLOR_RED ) );
+    ImageData second = renderImageWithBackground( displayHelper.getDisplay().getSystemColor( SWT.COLOR_GREEN ) );
+
+    assertThat( first.data ).isNotEqualTo( second.data );
+  }
+
+  @Test
+  public void getBackground() {
+    Color expected = displayHelper.getDisplay().getSystemColor( SWT.COLOR_RED );
+
+    clickControl.setBackground( expected );
+    Color actual = clickControl.getBackground();
+
+    assertThat( actual ).isEqualTo( expected );
+  }
+
+  private ImageData renderImageWithForeground( Color foreground ) {
+    clickControl.setForeground( foreground );
+    clickControl.controlResized( null );
+    return clickControl.getControl().getImage().getImageData();
+  }
+
+  private ImageData renderImageWithBackground( Color foreground ) {
+    clickControl.setBackground( foreground );
+    clickControl.controlResized( null );
+    return clickControl.getControl().getImage().getImageData();
   }
 
   private void triggerLeftButtonMouseEvent( int event ) {

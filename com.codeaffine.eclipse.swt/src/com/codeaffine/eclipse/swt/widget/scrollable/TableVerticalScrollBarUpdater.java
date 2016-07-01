@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollable;
 
 import org.eclipse.swt.widgets.Table;
@@ -5,7 +15,7 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.codeaffine.eclipse.swt.widget.scrollbar.FlatScrollBar;
 
-class TableVerticalScrollBarUpdater implements VerticalScrollBarUpdater {
+class TableVerticalScrollBarUpdater implements ScrollBarUpdater {
 
   private final FlatScrollBar scrollBar;
   private final Table table;
@@ -53,5 +63,4 @@ class TableVerticalScrollBarUpdater implements VerticalScrollBarUpdater {
   private static int cornerCaseWorkaroundForGtk( int selection, TableItem topItem ) {
     return topItem != null && topItem.getBounds().y < 0 ? selection + 1 : selection;
   }
-
 }

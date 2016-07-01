@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.test.util;
 
 import static java.util.Arrays.asList;
@@ -6,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -73,6 +84,9 @@ public class DisplayHelper implements TestRule {
     disposeNewShells();
     disposeImages();
     disposeDisplay();
+  }
+  public Color getSystemColor( int colorCode ) {
+    return getDisplay().getSystemColor( colorCode );
   }
 
   @Override

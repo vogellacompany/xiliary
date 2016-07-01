@@ -1,53 +1,17 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollable;
 
-import static com.codeaffine.eclipse.swt.widget.scrollable.FlatScrollBarTree.BAR_BREADTH;
-import static java.lang.Math.max;
+import com.codeaffine.eclipse.swt.widget.scrollable.context.AdaptionContext;
 
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Scrollable;
-
-class ScrollableLayouter {
-
-  private final Scrollable scrollable;
-
-  ScrollableLayouter( Scrollable scrollable ) {
-    this.scrollable = scrollable;
-  }
-
-  void layout( LayoutContext context ) {
-    scrollable.setLocation( computeLocation( context ) );
-    scrollable.setSize( computeWidth( context ), computeHeight( context ) );
-  }
-
-  private static Point computeLocation( LayoutContext context ) {
-    Point origin = context.getLocation();
-    return new Point( origin.x - context.getOffset(), origin.y - context.getOffset() );
-  }
-
-  private static int computeWidth( LayoutContext context ) {
-    int result = max( context.getPreferredSize().x, context.getVisibleArea().width );
-    if( context.isVerticalBarVisible() ) {
-      result = computeWidthWithVerticalBarPadding( context );
-    }
-    return result + context.getOffset() * 2;
-  }
-
-  private static int computeWidthWithVerticalBarPadding( LayoutContext context ) {
-    int preferredWidth = context.getPreferredSize().x;
-    int visibleAreaWidth = context.getVisibleArea().width;
-    int offset = context.getVerticalBarOffset();
-    return max( preferredWidth + offset, visibleAreaWidth + offset );
-  }
-
-  private static int computeHeight( LayoutContext context ) {
-    int result = context.getVisibleArea().height;
-    if( context.isHorizontalBarVisible() ) {
-      result = computeHeightWithHorizontalBarPadding( context );
-    }
-    return result + context.getOffset() * 2;
-  }
-
-  private static int computeHeightWithHorizontalBarPadding( LayoutContext context ) {
-    return context.getVisibleArea().height - BAR_BREADTH;
-  }
+public interface ScrollableLayouter {
+  void layout( AdaptionContext<?> context );
 }

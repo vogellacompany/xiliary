@@ -1,47 +1,85 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollable;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Scrollable;
 
 import com.codeaffine.eclipse.swt.util.ActionScheduler;
+import com.codeaffine.eclipse.swt.widget.scrollable.context.AdaptionContext;
+import com.codeaffine.eclipse.swt.widget.scrollable.context.Reconciliation;
 
 class WatchDog implements Runnable, DisposeListener {
 
-  static final int DELAY = 10;
+  static final int DELAY = 50;
 
-  private final VerticalScrollBarUpdater verticalBarUpdater;
+  private final NestingStructurePreserver nestingStructurePresever;
+  private final StructureScrollableRedrawInsurance structureScrollableRedrawInsurance;
+  private final ScrollBarUpdater horizontalBarUpdater;
+  private final ScrollBarUpdater verticalBarUpdater;
+  private final Reconciliation reconciliation;
   private final Visibility vScrollVisibility;
   private final Visibility hScrollVisibility;
   private final LayoutTrigger layoutTrigger;
+  private final SizeObserver sizeObserver;
   private final ActionScheduler scheduler;
-  private final TreeWidth treeWidth;
 
-  private boolean disposed;
+  AdaptionContext<?> context;
+  boolean layoutInitialized;
+  boolean disposed;
 
-  WatchDog( Scrollable scrollable, LayoutContextFactory contextFactory, VerticalScrollBarUpdater verticalBarUpdater  ) {
-    this( verticalBarUpdater,
-          new Visibility( scrollable.getHorizontalBar(), contextFactory ),
-          new Visibility( scrollable.getVerticalBar(), contextFactory ),
+
+  WatchDog( AdaptionContext<?> context,
+            ScrollBarUpdater horizontalUpdater,
+            ScrollBarUpdater verticalUpdater,
+            SizeObserver sizeObserver )
+  {
+    this( context,
+          horizontalUpdater,
+          verticalUpdater,
+          new Visibility( SWT.HORIZONTAL ),
+          new Visibility( SWT.VERTICAL ),
           null,
-          new LayoutTrigger( scrollable.getParent() ),
-          new TreeWidth( scrollable, contextFactory ) );
+          new LayoutTrigger( context.getAdapter() ),
+          sizeObserver,
+          context.getReconciliation(),
+          new NestingStructurePreserver( context ),
+          new StructureScrollableRedrawInsurance( context.getScrollable() ) );
   }
 
-  WatchDog( VerticalScrollBarUpdater verticalBarUpdater,
+  WatchDog( AdaptionContext<?> context,
+            ScrollBarUpdater horizontalBarUpdater,
+            ScrollBarUpdater verticalBarUpdater,
             Visibility hScrollVisibility,
             Visibility vScrollVisibility,
             ActionScheduler actionScheduler,
             LayoutTrigger layoutTrigger,
-            TreeWidth treeWidth )
+            SizeObserver sizeObserver,
+            Reconciliation reconciliation,
+            NestingStructurePreserver nestingPresever,
+            StructureScrollableRedrawInsurance structureScrollableRedrawInsurance )
   {
+    this.context = context;
+    this.horizontalBarUpdater = horizontalBarUpdater;
     this.verticalBarUpdater = verticalBarUpdater;
     this.hScrollVisibility = hScrollVisibility;
     this.vScrollVisibility = vScrollVisibility;
+    this.nestingStructurePresever = nestingPresever;
+    this.structureScrollableRedrawInsurance = structureScrollableRedrawInsurance;
     this.scheduler = ensureScheduler( actionScheduler );
+    this.reconciliation = reconciliation;
     this.layoutTrigger = layoutTrigger;
-    this.treeWidth = treeWidth;
+    this.sizeObserver = sizeObserver;
     scheduler.schedule( DELAY );
   }
 
@@ -53,21 +91,42 @@ class WatchDog implements Runnable, DisposeListener {
   @Override
   public void run() {
     if( !disposed ) {
-      doRun();
+      runWithReconciliationSuspended();
       scheduler.schedule( DELAY );
     }
   }
 
+  private void runWithReconciliationSuspended() {
+    reconciliation.runWhileSuspended( () -> doRun() );
+  }
+
   private void doRun() {
-    if( vScrollVisibility.hasChanged() || hScrollVisibility.hasChanged() || treeWidth.hasScrollEffectingChange() ) {
+    context.updatePreferredSize();
+    context = context.newContext();
+    if( mustLayout() ) {
       layoutTrigger.pull();
+      context = context.newContext();
     }
-    treeWidth.update();
-    vScrollVisibility.update();
-    hScrollVisibility.update();
+    sizeObserver.update( context );
+    vScrollVisibility.update( context );
+    hScrollVisibility.update( context );
     if( vScrollVisibility.isVisible() ) {
       verticalBarUpdater.update();
     }
+    if( hScrollVisibility.isVisible() ) {
+      horizontalBarUpdater.update();
+    }
+    nestingStructurePresever.run();
+    structureScrollableRedrawInsurance.run();
+  }
+
+  private boolean mustLayout() {
+    boolean result =    !layoutInitialized
+                     || vScrollVisibility.hasChanged( context )
+                     || hScrollVisibility.hasChanged( context )
+                     || sizeObserver.mustLayoutAdapter( context );
+    layoutInitialized = true;
+    return result;
   }
 
   private ActionScheduler ensureScheduler( ActionScheduler actionScheduler ) {

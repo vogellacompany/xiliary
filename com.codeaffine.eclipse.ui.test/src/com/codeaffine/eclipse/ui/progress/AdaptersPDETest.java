@@ -1,6 +1,16 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.ui.progress;
 
-import static com.codeaffine.test.util.lang.ThrowableCaptor.thrown;
+import static com.codeaffine.test.util.lang.ThrowableCaptor.thrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
@@ -19,8 +29,6 @@ import org.eclipse.core.runtime.Platform;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.codeaffine.test.util.lang.ThrowableCaptor.Actor;
 
 public class AdaptersPDETest {
 
@@ -102,12 +110,7 @@ public class AdaptersPDETest {
     Collection<Object> expected = new ArrayList<Object>();
     registerAdapterFactory( stubAdapterFactory( expected ), Boolean.class );
 
-    Throwable actual = thrown( new Actor() {
-      @Override
-      public void act() throws Throwable {
-        adapters.getAdapter( Boolean.TRUE, ADAPTER_TYPE_2 );
-      }
-    } );
+    Throwable actual = thrownBy( () -> adapters.getAdapter( Boolean.TRUE, ADAPTER_TYPE_2 ) );
 
     assertThat( actual ).isInstanceOf( ClassCastException.class );
   }
@@ -141,12 +144,7 @@ public class AdaptersPDETest {
     Collection<Object> expected = new ArrayList<Object>();
     final IAdaptable adaptable = stubAdaptable( expected, ADAPTER_TYPE_2 );
 
-    Throwable actual = thrown( new Actor() {
-      @Override
-      public void act() throws Throwable {
-        adapters.getAdapter( adaptable, ADAPTER_TYPE_2 );
-      }
-    } );
+    Throwable actual = thrownBy( () -> adapters.getAdapter( adaptable, ADAPTER_TYPE_2 ) );
 
     assertThat( actual ).isInstanceOf( ClassCastException.class );
   }
@@ -158,16 +156,17 @@ public class AdaptersPDETest {
 
   private static IAdaptable stubAdaptable( Object expected, Class<?> adapterType  ) {
     IAdaptable result = mock( IAdaptable.class );
-    when( result.getAdapter( adapterType ) ).thenReturn( expected );
+    when( ( Object )result.getAdapter( adapterType ) ).thenReturn( expected );
     return result;
   }
 
   private static <T> T stubAdaptable( Object expected, Class<T> type, Class<?> adapterType ) {
     T result = mock( type, withSettings().extraInterfaces( IAdaptable.class ) );
-    when( ( ( IAdaptable )result ).getAdapter( adapterType ) ).thenReturn( expected );
+    when( ( Object )( ( IAdaptable )result ).getAdapter( adapterType ) ).thenReturn( expected );
     return result;
   }
 
+  @SuppressWarnings("unchecked")
   private static IAdapterFactory stubAdapterFactory( Collection<Object> expected ) {
     IAdapterFactory result = mock( IAdapterFactory.class );
     when( result.getAdapter( anyObject(), any( Class.class ) ) ).thenReturn( expected );

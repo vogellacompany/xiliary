@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollable;
 
 import static com.codeaffine.eclipse.swt.test.util.ShellHelper.createShell;
@@ -17,10 +27,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.codeaffine.eclipse.swt.test.util.DisplayHelper;
-import com.codeaffine.eclipse.swt.widget.scrollable.TreeLayoutFactory.TreeLayoutContextFactory;
+import com.codeaffine.eclipse.swt.widget.scrollable.context.AdaptionContext;
+import com.codeaffine.eclipse.swt.widget.scrollable.context.ScrollableControl;
 
 @RunWith( Parameterized.class )
 public class VisibilityTest {
@@ -36,22 +48,21 @@ public class VisibilityTest {
   @Rule
   public final DisplayHelper displayHelper = new DisplayHelper();
 
-  private final int orientation;
+  @Parameter
+  public int orientation;
 
+  private AdaptionContext<Tree> context;
   private Visibility visibility;
   private Shell shell;
   private Tree tree;
-
-  public VisibilityTest( int orientation ) {
-    this.orientation = orientation;
-  }
 
   @Before
   public void setUp() {
     shell = createShell( displayHelper, SWT.RESIZE );
     tree = createTree( shell, 2, 4 );
+    context = new AdaptionContext<>( shell, new ScrollableControl<>( tree ) );
     shell.open();
-    visibility = createVisibility();
+    visibility = new Visibility( orientation );
   }
 
   @Test
@@ -77,7 +88,8 @@ public class VisibilityTest {
     shell.setSize( 200, 100 );
     expandRootLevelItems( tree );
     expandTopBranch( tree );
-    visibility.update();
+    context.updatePreferredSize();
+    visibility.update( context.newContext() );
 
     boolean actual = visibility.isVisible();
 
@@ -86,7 +98,7 @@ public class VisibilityTest {
 
   @Test
   public void hasChanged() {
-    boolean actual = visibility.hasChanged();
+    boolean actual = visibility.hasChanged( context.newContext() );
 
     assertThat( actual ).isFalse();
   }
@@ -96,8 +108,9 @@ public class VisibilityTest {
     shell.setSize( 200, 100 );
     expandRootLevelItems( tree );
     expandTopBranch( tree );
+    context.updatePreferredSize();
 
-    boolean actual = visibility.hasChanged();
+    boolean actual = visibility.hasChanged( context.newContext() );
 
     assertThat( actual ).isTrue();
   }
@@ -108,19 +121,10 @@ public class VisibilityTest {
     expandRootLevelItems( tree );
     expandTopBranch( tree );
 
-    visibility.update();
+    visibility.update( context.newContext() );
 
-    boolean actual = visibility.hasChanged();
+    boolean actual = visibility.hasChanged( context.newContext() );
 
     assertThat( actual ).isFalse();
-  }
-
-  private Visibility createVisibility() {
-    TreeLayoutContextFactory factory = new TreeLayoutContextFactory( tree );
-    Visibility result = new Visibility( tree.getHorizontalBar(), factory );
-    if( ( orientation & SWT.VERTICAL ) > 0  ) {
-      result = new Visibility( tree.getVerticalBar(), factory );
-    }
-    return result;
   }
 }

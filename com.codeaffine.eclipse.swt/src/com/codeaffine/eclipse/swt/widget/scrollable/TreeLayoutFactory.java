@@ -1,50 +1,53 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollable;
 
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Tree;
 
+import com.codeaffine.eclipse.swt.widget.scrollable.context.AdaptionContext;
 import com.codeaffine.eclipse.swt.widget.scrollbar.FlatScrollBar;
 
 class TreeLayoutFactory extends ScrollableLayoutFactory<Tree> {
 
-  static class TreeLayoutContextFactory implements LayoutContextFactory {
-
-    private final Tree tree;
-
-    TreeLayoutContextFactory( Tree tree ) {
-      this.tree = tree;
-    }
-
-    @Override
-    public LayoutContext create() {
-      return new LayoutContext( tree, tree.getItemHeight() );
-    }
+  @Override
+  public Layout create( AdaptionContext<Tree> context, FlatScrollBar horizontal, FlatScrollBar vertical ) {
+    ScrollableLayouter layouter = new StructuredScrollableLayouter( context.getScrollable() );
+    return new ScrollableLayout( newContext( context ), layouter, horizontal, vertical, getCornerOverlay() );
   }
 
   @Override
-  public Layout create( Tree tree, FlatScrollBar horizontal, FlatScrollBar vertical, Label cornerOverlay ) {
-    return new ScrollableLayout<Tree>( tree, createContextFactory( tree ), horizontal, vertical, cornerOverlay );
+  public SelectionListener createHorizontalSelectionListener( AdaptionContext<Tree> context ) {
+    return new StructuredScrollableHorizontalSelectionListener( context );
   }
 
   @Override
-  public SelectionListener createHorizontalSelectionListener( Tree tree ) {
-    return new HorizontalSelectionListener( tree );
+  public SelectionListener createVerticalSelectionListener( AdaptionContext<Tree> context ) {
+    return new TreeVerticalSelectionListener( context.getScrollable().getControl() );
   }
 
   @Override
-  public SelectionListener createVerticalSelectionListener( Tree tree ) {
-    return new TreeVerticalSelectionListener( tree );
+  public DisposeListener createWatchDog(
+    AdaptionContext<Tree> context, FlatScrollBar horizontal, FlatScrollBar vertical )
+  {
+    Tree control = context.getScrollable().getControl();
+    ScrollBarUpdater horizontalUpdater = new StructuredScrollableHorizontalScrollBarUpdater( context, horizontal );
+    ScrollBarUpdater verticalUpdater = new TreeVerticalScrollBarUpdater( control, vertical );
+    SizeObserver sizeObserver = new StructuredScrollableSizeObserver();
+    return new WatchDog( newContext( context ), horizontalUpdater, verticalUpdater, sizeObserver );
   }
 
-  @Override
-  public DisposeListener createWatchDog( Tree tree, FlatScrollBar horizontal, FlatScrollBar vertical ) {
-    return new WatchDog( tree, createContextFactory( tree ), new TreeVerticalScrollBarUpdater( tree, vertical ) );
-  }
-
-  private static TreeLayoutContextFactory createContextFactory( Tree tree ) {
-    return new TreeLayoutContextFactory( tree );
+  private static AdaptionContext<Tree> newContext( AdaptionContext<Tree> context ) {
+    return context.newContext( context.getScrollable().getItemHeight() );
   }
 }

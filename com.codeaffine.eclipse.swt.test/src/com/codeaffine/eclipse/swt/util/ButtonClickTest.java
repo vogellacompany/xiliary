@@ -1,8 +1,18 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.util;
 
 import static com.codeaffine.eclipse.swt.util.ButtonClick.LEFT_BUTTON;
 import static com.codeaffine.eclipse.swt.util.MouseEventHelper.createMouseEvent;
-import static com.codeaffine.test.util.lang.ThrowableCaptor.thrown;
+import static com.codeaffine.test.util.lang.ThrowableCaptor.thrownBy;
 import static junitparams.JUnitParamsRunner.$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
@@ -10,8 +20,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
@@ -21,7 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.codeaffine.test.util.lang.ThrowableCaptor.Actor;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 
 @RunWith( JUnitParamsRunner.class )
 public class ButtonClickTest {
@@ -94,12 +103,7 @@ public class ButtonClickTest {
     final MouseEvent event = createLeftButtonMouseEventOnControlStub( X_RANGE, Y_RANGE, IN_X_RANGE, IN_Y_RANGE );
     mouseClick.arm( event );
 
-    Throwable actual = thrown( new Actor() {
-      @Override
-      public void act() {
-        mouseClick.trigger( event, action );
-      }
-    } );
+    Throwable actual = thrownBy( () ->  mouseClick.trigger( event, action ) );
 
     assertThat( actual ).isSameAs( expected );
   }

@@ -1,19 +1,28 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.core.runtime;
 
 import static com.codeaffine.eclipse.core.runtime.ArgumentVerification.NOT_NULL_PATTERN;
 import static com.codeaffine.eclipse.core.runtime.ArgumentVerification.NO_NULL_ELEMENT_PATTERN;
 import static com.codeaffine.eclipse.core.runtime.ArgumentVerification.verifyNoNullElement;
 import static com.codeaffine.eclipse.core.runtime.ArgumentVerification.verifyNotNull;
-import static com.codeaffine.test.util.lang.ThrowableCaptor.thrown;
+import static com.codeaffine.test.util.lang.ThrowableCaptor.thrownBy;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import org.junit.Test;
-
-import com.codeaffine.test.util.lang.ThrowableCaptor.Actor;
 
 public class ArgumentVerificationTest {
 
@@ -21,11 +30,7 @@ public class ArgumentVerificationTest {
 
   @Test
   public void verifyNotNullWithNullArgument() {
-    Throwable expected = thrown( new Actor() {
-      @Override public void act() {
-        verifyNotNull( null, ARGUMENT_NAME );
-      }
-    } );
+    Throwable expected = thrownBy( () ->  verifyNotNull( null, ARGUMENT_NAME ) );
 
     assertThat( expected )
       .isInstanceOf( IllegalArgumentException.class )
@@ -34,25 +39,17 @@ public class ArgumentVerificationTest {
 
   @Test
   public void verifyNotNullWithArgument() {
-    Throwable expected = thrown( new Actor() {
-      @Override public void act() {
-        verifyNotNull( new Object(), ARGUMENT_NAME );
-      }
-    } );
+    Throwable expected = thrownBy( () -> verifyNotNull( new Object(), ARGUMENT_NAME ) );
 
     assertThat( expected ).isNull();
   }
 
   @Test
   public void verifyNoNullElementWithNullElement() {
-    final Collection<Predicate> iterable = new ArrayList<Predicate>();
+    Collection<Predicate<Extension>> iterable = new ArrayList<>();
     iterable.add( null );
 
-    Throwable expected = thrown( new Actor() {
-      @Override public void act() {
-        verifyNoNullElement( iterable, ARGUMENT_NAME );
-      }
-    } );
+    Throwable expected = thrownBy( () -> verifyNoNullElement( iterable, ARGUMENT_NAME ) );
 
     assertThat( expected )
       .isInstanceOf( IllegalArgumentException.class )
@@ -61,15 +58,11 @@ public class ArgumentVerificationTest {
 
   @Test
   public void verifyNoNullElementWithoutElement() {
-    final Collection<Predicate> iterable = new ArrayList<Predicate>();
+    Collection<Predicate<Extension>> iterable = new ArrayList<>();
     iterable.add( Predicates.alwaysFalse() );
 
-    Throwable expected = thrown( new Actor() {
-      @Override public void act() {
-        verifyNoNullElement( iterable, ARGUMENT_NAME );
-      }
-    } );
+    Throwable actual = thrownBy( () -> verifyNoNullElement( iterable, ARGUMENT_NAME ) );
 
-    assertThat( expected ).isNull();
+    assertThat( actual ).isNull();
   }
 }

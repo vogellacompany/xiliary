@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollbar;
 
 import static com.codeaffine.eclipse.swt.test.util.SWTEventHelper.trigger;
@@ -7,7 +17,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -105,6 +117,61 @@ public class DragControlTest {
     Control control = clickControl.getControl();
 
     assertThat( control.getLayoutData() ).isNull();
+  }
+
+  @Test
+  public void setForeground() {
+    clickControl.getControl().setSize( 20, 20 );
+
+    ImageData first = renderImageWithForeground( displayHelper.getDisplay().getSystemColor( SWT.COLOR_RED ) );
+    ImageData second = renderImageWithForeground( displayHelper.getDisplay().getSystemColor( SWT.COLOR_CYAN ) );
+
+    assertThat( first.data ).isNotEqualTo( second.data );
+  }
+
+  @Test
+  public void getForeground() {
+    Color expected = displayHelper.getDisplay().getSystemColor( SWT.COLOR_BLACK );
+
+    clickControl.setForeground( expected );
+    Color actual = clickControl.getForeground();
+
+    assertThat( actual ).isEqualTo( expected );
+  }
+
+  @Test
+  public void setBackground() {
+    clickControl.getControl().setSize( 20, 20 );
+
+    ImageData first = renderImageWithBackground( displayHelper.getDisplay().getSystemColor( SWT.COLOR_RED ) );
+    ImageData second = renderImageWithBackground( displayHelper.getDisplay().getSystemColor( SWT.COLOR_CYAN ) );
+
+    assertThat( first.data ).isNotEqualTo( second.data );
+  }
+
+  @Test
+  public void getBackground() {
+    Color expected = displayHelper.getDisplay().getSystemColor( SWT.COLOR_BLACK );
+
+    clickControl.setBackground( expected );
+    Color actual = clickControl.getBackground();
+
+    assertThat( actual ).isEqualTo( expected );
+  }
+
+  private ImageData renderImageWithForeground( Color color ) {
+    clickControl.setForeground( color );
+    return renderImage();
+  }
+
+  private ImageData renderImageWithBackground( Color color ) {
+    clickControl.setBackground( color );
+    return renderImage();
+  }
+
+  private ImageData renderImage() {
+    clickControl.controlResized( null );
+    return clickControl.getControl().getImage().getImageData();
   }
 
   private Label getClickControl() {

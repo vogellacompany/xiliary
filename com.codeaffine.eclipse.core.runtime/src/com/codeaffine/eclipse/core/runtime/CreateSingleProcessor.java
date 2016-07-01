@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.core.runtime;
 
 import static com.codeaffine.eclipse.core.runtime.ArgumentVerification.verifyNotNull;
@@ -12,9 +22,7 @@ public class CreateSingleProcessor<T> extends ReadSingleProcessor<T> implements 
   }
 
   @Override
-  public CreateSingleProcessor<T> withConfiguration(
-    ExecutableExtensionConfigurator<T> configurator )
-  {
+  public CreateSingleProcessor<T> withConfiguration( ExecutableExtensionConfigurator<T> configurator ) {
     verifyNotNull( configurator, "configurator" );
 
     getOperator().setConfigurator( configurator );
@@ -22,9 +30,7 @@ public class CreateSingleProcessor<T> extends ReadSingleProcessor<T> implements 
   }
 
   @Override
-  public CreateSingleProcessor<T> withExceptionHandler(
-    ExtensionExceptionHandler exceptionHandler )
-  {
+  public CreateSingleProcessor<T> withExceptionHandler( ExtensionExceptionHandler exceptionHandler ) {
     verifyNotNull( exceptionHandler, "exceptionHandler" );
 
     getOperator().setExceptionHandler( exceptionHandler );

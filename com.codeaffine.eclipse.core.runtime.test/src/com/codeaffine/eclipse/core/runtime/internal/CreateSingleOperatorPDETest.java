@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.core.runtime.internal;
 
 import static com.codeaffine.eclipse.core.runtime.Predicates.alwaysFalse;
@@ -6,7 +16,7 @@ import static com.codeaffine.eclipse.core.runtime.Predicates.attribute;
 import static com.codeaffine.eclipse.core.runtime.TestExtension.EXTENSION_POINT;
 import static com.codeaffine.eclipse.core.runtime.internal.ContributionFinder.ERROR_TOO_MANY_CONTRIBUTIONS;
 import static com.codeaffine.eclipse.core.runtime.internal.ContributionFinder.ERROR_ZERO_CONTRIBUTIONS;
-import static com.codeaffine.test.util.lang.ThrowableCaptor.thrown;
+import static com.codeaffine.test.util.lang.ThrowableCaptor.thrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -23,7 +33,6 @@ import com.codeaffine.eclipse.core.runtime.ExtensionExceptionHandler;
 import com.codeaffine.eclipse.core.runtime.FindException;
 import com.codeaffine.eclipse.core.runtime.TestExtension;
 import com.codeaffine.eclipse.core.runtime.TestExtensionConfigurator;
-import com.codeaffine.test.util.lang.ThrowableCaptor.Actor;
 
 public class CreateSingleOperatorPDETest {
 
@@ -56,12 +65,7 @@ public class CreateSingleOperatorPDETest {
 
   @Test
   public void createWithDefaultPredicate() {
-    Throwable actual = thrown( new Actor() {
-      @Override
-      public void act() throws Throwable {
-        operator.create();
-      }
-    } );
+    Throwable actual = thrownBy( () -> operator.create() );
 
     assertThat( actual )
       .isInstanceOf( FindException.class )
@@ -73,12 +77,7 @@ public class CreateSingleOperatorPDETest {
     operator.setPredicate( attribute( "id", "1" ) );
     operator.setTypeAttribute( "unknown" );
 
-    Throwable actual = thrown( new Actor() {
-      @Override
-      public void act() throws Throwable {
-        operator.create();
-      }
-    } );
+    Throwable actual = thrownBy( () -> operator.create() );
 
     assertThat( actual )
       .isInstanceOf( ExtensionException.class )
@@ -102,12 +101,7 @@ public class CreateSingleOperatorPDETest {
   public void setPredicateWithTooManyContributions() {
     operator.setPredicate( attribute( "id", "1" ) );
 
-    Throwable actual = thrown( new Actor() {
-      @Override
-      public void act() throws Throwable {
-        operator.setPredicate( alwaysTrue() );
-      }
-    } );
+    Throwable actual = thrownBy( () -> operator.setPredicate( alwaysTrue() ) );
 
     assertThat( actual )
       .isInstanceOf( FindException.class )
@@ -116,12 +110,7 @@ public class CreateSingleOperatorPDETest {
 
   @Test
   public void setPredicateWithZeroContributions() {
-    Throwable actual = thrown( new Actor() {
-      @Override
-      public void act() throws Throwable {
-        operator.setPredicate( alwaysFalse() );
-      }
-    } );
+    Throwable actual = thrownBy( () -> operator.setPredicate( alwaysFalse() ) );
 
     assertThat( actual )
       .isInstanceOf( FindException.class )

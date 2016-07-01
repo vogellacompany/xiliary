@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.core.runtime;
 
 import static com.codeaffine.eclipse.core.runtime.ArgumentVerification.verifyNotNull;
@@ -16,7 +26,7 @@ public class RegistryAdapter {
   interface ExecutableExtensionConfiguration<T> {
     ExecutableExtensionConfiguration<T> withConfiguration( ExecutableExtensionConfigurator<T> configurator );
     ExecutableExtensionConfiguration<T> withExceptionHandler( ExtensionExceptionHandler exceptionHandler );
-    ExecutableExtensionConfiguration<T> withTypeAttribute( String typeAttribute);
+    ExecutableExtensionConfiguration<T> withTypeAttribute( String typeAttribute );
   }
 
   public RegistryAdapter() {
@@ -43,9 +53,7 @@ public class RegistryAdapter {
     return new ReadMultiProcessor<Extension>( factory.newReadExtensionsOperator( extensionPointId ) );
   }
 
-  public <T> CreateSingleProcessor<T> createExecutableExtension(
-    String extensionPointId, Class<T> extensionType )
-  {
+  public <T> CreateSingleProcessor<T> createExecutableExtension( String extensionPointId, Class<T> extensionType ) {
     verifyNotNull( extensionPointId, "extensionPointId" );
     verifyNotNull( extensionType, "extensionType" );
 
@@ -54,9 +62,7 @@ public class RegistryAdapter {
     );
   }
 
-  public <T> CreateMultiProcessor<T> createExecutableExtensions(
-    String extensionPointId, Class<T> extensionType )
-  {
+  public <T> CreateMultiProcessor<T> createExecutableExtensions( String extensionPointId, Class<T> extensionType ) {
     verifyNotNull( extensionPointId, "extensionPointId" );
     verifyNotNull( extensionType, "extensionType" );
 

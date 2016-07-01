@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.test.util;
 
 import org.eclipse.swt.SWT;
@@ -24,6 +34,13 @@ public class SWTIgnoreConditions {
     @Override
     public boolean isSatisfied() {
       return "cocoa".equals( SWT.getPlatform() );
+    }
+  }
+
+  public static class NonCocoaPlatform implements IgnoreCondition {
+    @Override
+    public boolean isSatisfied() {
+      return !"cocoa".equals( SWT.getPlatform() );
     }
   }
 

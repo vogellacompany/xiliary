@@ -1,5 +1,16 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.test.util;
 
+import static com.codeaffine.test.util.lang.ThrowableCaptor.thrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.swt.SWT.NONE;
 import static org.eclipse.swt.SWT.SHELL_TRIM;
@@ -8,6 +19,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
@@ -16,9 +29,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runners.model.Statement;
-
-import com.codeaffine.test.util.lang.ThrowableCaptor;
-import com.codeaffine.test.util.lang.ThrowableCaptor.Actor;
 
 public class DisplayHelperTest {
 
@@ -113,17 +123,21 @@ public class DisplayHelperTest {
     Shell shell = displayHelper.createShell();
     Exception toBeThrown = new Exception( "bad" );
     Statement originTest = stubOriginTestEvaluationWithProblem( toBeThrown );
+    Statement statement = displayHelper.apply( originTest, createSuiteDescription( "testName" ) );
 
-    final Statement statement = displayHelper.apply( originTest, createSuiteDescription( "testName" ) );
-    Throwable captured = ThrowableCaptor.thrown( new Actor() {
-      @Override
-      public void act() throws Throwable {
-        statement.evaluate();
-      }
-    } );
+    Throwable captured = thrownBy( () -> statement.evaluate() );
 
     assertThat( captured ).isSameAs( toBeThrown );
     assertThat( shell.isDisposed() ).isTrue();
+  }
+
+  @Test
+  public void getColorCode() {
+    Color expected = displayHelper.getDisplay().getSystemColor( SWT.COLOR_BLUE );
+
+    Color actual = displayHelper.getSystemColor( SWT.COLOR_BLUE );
+
+    assertThat( actual ).isEqualTo( expected );
   }
 
   private static Statement stubOriginTestEvaluationWithProblem( Throwable toBeThrown ) throws Throwable {

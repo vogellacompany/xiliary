@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollable;
 
 import static com.codeaffine.eclipse.swt.test.util.ShellHelper.createShell;
@@ -12,26 +22,32 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import com.codeaffine.eclipse.swt.test.util.DisplayHelper;
-import com.codeaffine.eclipse.swt.widget.scrollable.TreeLayoutFactory.TreeLayoutContextFactory;
+import com.codeaffine.eclipse.swt.widget.scrollable.context.AdaptionContext;
+import com.codeaffine.eclipse.swt.widget.scrollable.context.ScrollableControl;
 
 public class PreferredWidthComputerTest {
 
   @Rule public final DisplayHelper displayHelper = new DisplayHelper();
 
+  private AdaptionContext<Tree> layoutContext;
   private PreferredWidthComputer computer;
   private Tree tree;
+
 
   @Before
   public void setUp() {
     Shell shell = createShell( displayHelper );
     tree = createTree( shell, 6, 4 );
-    computer = new PreferredWidthComputer( new TreeLayoutContextFactory( tree ) );
+    layoutContext = new AdaptionContext<>( shell, new ScrollableControl<>( tree ) );
+    computer = new PreferredWidthComputer();
     shell.open();
   }
 
   @Test
   public void compute() {
-    int actual = computer.compute();
+    layoutContext.updatePreferredSize();
+
+    int actual = computer.compute( layoutContext.newContext() );
 
     assertThat( actual ).isEqualTo( preferredWidth() );
   }
@@ -39,18 +55,20 @@ public class PreferredWidthComputerTest {
   @Test
   public void computeIfVerticalScrollBarVisible() {
     expandRootLevelItems( tree );
+    layoutContext.updatePreferredSize();
 
-    int actual = computer.compute();
+    int actual = computer.compute( layoutContext.newContext() );
 
     assertThat( actual ).isEqualTo( overlayAdjustment() );
   }
 
   private int preferredWidth() {
-    LayoutContext context = new LayoutContext( tree, tree.getItemHeight() );
+    AdaptionContext<?> context = layoutContext.newContext( tree.getItemHeight() );
     return context.getPreferredSize().x + context.getOffset() * 2;
   }
 
   private int overlayAdjustment() {
-    return preferredWidth() + new LayoutContext( tree, tree.getItemHeight() ).getVerticalBarOffset();
+    AdaptionContext<?> context = layoutContext.newContext( tree.getItemHeight() );
+    return preferredWidth() + context.getVerticalBarOffset();
   }
 }

@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollbar;
 
 import org.eclipse.swt.SWT;
@@ -6,6 +16,7 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseTrackListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
@@ -27,8 +38,7 @@ class ClickControl extends ControlAdapter implements ViewComponent, TimerAction,
 
   ClickControl( Composite parent, ClickAction clickAction, int maxExtension  ) {
     this.control = new Label( parent, SWT.NONE );
-    this.control.setBackground( parent.getDisplay().getSystemColor( SWT.COLOR_WIDGET_LIGHT_SHADOW ) );
-    this.imageUpdate = new ImageUpdate( control, maxExtension, SWT.COLOR_WIDGET_BACKGROUND );
+    this.imageUpdate = new ImageUpdate( control, maxExtension );
     this.buttonClick = new ButtonClick();
     this.mouseDownActionTimer = new MouseDownActionTimer( this, buttonClick, control.getDisplay() );
     this.clickAction = clickAction;
@@ -72,6 +82,22 @@ class ClickControl extends ControlAdapter implements ViewComponent, TimerAction,
   @Override
   public void mouseExit( MouseEvent event ) {
     buttonClick.disarm();
+  }
+
+  void setForeground( Color color ) {
+    imageUpdate.setForeground( color );
+  }
+
+  Color getForeground() {
+    return imageUpdate.getForeground();
+  }
+
+  void setBackground( Color color ) {
+    imageUpdate.setBackground( color );
+  }
+
+  Color getBackground() {
+    return imageUpdate.getBackground();
   }
 
   @Override

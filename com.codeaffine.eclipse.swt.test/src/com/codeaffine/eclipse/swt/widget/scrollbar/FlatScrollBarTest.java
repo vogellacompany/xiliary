@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollbar;
 
 import static com.codeaffine.eclipse.swt.test.util.DisplayHelper.flushPendingEvents;
@@ -24,7 +34,9 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,7 +44,9 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.codeaffine.eclipse.swt.test.util.DisplayHelper;
+import com.codeaffine.eclipse.swt.test.util.SWTIgnoreConditions.GtkPlatform;
 import com.codeaffine.test.util.junit.ConditionalIgnoreRule;
+import com.codeaffine.test.util.junit.ConditionalIgnoreRule.ConditionalIgnore;
 
 public class FlatScrollBarTest {
 
@@ -457,7 +471,7 @@ public class FlatScrollBarTest {
   public void initialSizeSettings() {
     Point size = scrollBar.getSize();
 
-    assertThat( size.y ).isEqualTo( Direction.BAR_BREADTH );
+    assertThat( size.y ).isEqualTo( FlatScrollBar.BAR_BREADTH );
   }
 
   @Test
@@ -483,6 +497,56 @@ public class FlatScrollBarTest {
     scrollBar.setSelectionInternal( 2, SWT.NONE );
 
     verify( listener, never() ).widgetSelected( any( SelectionEvent.class ) );
+  }
+
+  @Test
+  public void addUntypedSelectionListener() {
+    ArgumentCaptor<Event> captor = forClass( Event.class );
+    Listener listener = mock( Listener.class );
+
+    scrollBar.addListener( SWT.Selection, listener );
+    scrollBar.setSelectionInternal( 2, SWT.DRAG );
+
+    verify( listener ).handleEvent( captor.capture() );
+    assertThat( captor.getValue().widget ).isSameAs( scrollBar );
+    assertThat( captor.getValue().detail ).isEqualTo( SWT.DRAG );
+    assertThat( scrollBar.getSelection() ).isEqualTo( 2 );
+  }
+
+  @Test
+  public void removeUntypedSelectionListener() {
+    Listener listener = mock( Listener.class );
+    scrollBar.addListener( SWT.Selection, listener );
+
+    scrollBar.removeListener( SWT.Selection, listener );
+    scrollBar.setSelectionInternal( 2, SWT.NONE );
+
+    verify( listener, never() ).handleEvent( any( Event.class ) );
+  }
+
+  @Test
+  @ConditionalIgnore( condition = GtkPlatform.class )
+  public void addCommonListener() {
+    ArgumentCaptor<Event> captor = forClass( Event.class );
+    Listener listener = mock( Listener.class );
+
+    scrollBar.addListener( SWT.FocusIn, listener );
+    scrollBar.forceFocus();
+
+    verify( listener ).handleEvent( captor.capture() );
+    assertThat( captor.getValue().widget ).isSameAs( scrollBar );
+  }
+
+  @Test
+  @ConditionalIgnore( condition = GtkPlatform.class )
+  public void removeCommonListener() {
+    Listener listener = mock( Listener.class );
+    scrollBar.addListener( SWT.FocusIn, listener );
+
+    scrollBar.removeListener( SWT.FocusIn, listener );
+    scrollBar.forceFocus();
+
+    verify( listener, never() ).handleEvent( any( Event.class ) );
   }
 
   @Test

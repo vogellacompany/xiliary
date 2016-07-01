@@ -1,15 +1,27 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollable;
 
-import static com.codeaffine.eclipse.swt.widget.scrollable.FlatScrollBarTree.BAR_BREADTH;
 import static com.codeaffine.eclipse.swt.widget.scrollable.FlatScrollBarTree.MAX_EXPANSION;
 
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Label;
 
+import com.codeaffine.eclipse.swt.widget.scrollable.context.AdaptionContext;
 import com.codeaffine.eclipse.swt.widget.scrollbar.FlatScrollBar;
 
 class OverlayLayouter {
+
+  static final int CORNER_COVERAGE = 2;
 
   private final FlatScrollBar horizontal;
   private final FlatScrollBar vertical;
@@ -21,17 +33,17 @@ class OverlayLayouter {
     this.vertical = vertical;
   }
 
-  void layout( LayoutContext context ) {
+  void layout( AdaptionContext<?> context ) {
     layoutVertical( context );
     layoutHorizontal( context );
     layoutCornerOverlay( context );
   }
 
-  private void layoutVertical( LayoutContext context ) {
+  private void layoutVertical( AdaptionContext<?> context ) {
     if( context.isVerticalBarVisible() ) {
-      Rectangle visibleArea = context.getVisibleArea();
-      int vHeight = context.isHorizontalBarVisible() ? visibleArea.height - MAX_EXPANSION: visibleArea.height;
-      vertical.setBounds( visibleArea.width - BAR_BREADTH, 0, BAR_BREADTH, vHeight );
+      int x = context.getVisibleArea().width - barBreadth( context ) - borderOffset( context );
+      int height = computeVerticalHeight( context );
+      vertical.setBounds( x, 0, barBreadth( context ), height );
       vertical.setVisible( true );
     } else {
       vertical.setVisible( false );
@@ -39,11 +51,17 @@ class OverlayLayouter {
     }
   }
 
-  private void layoutHorizontal( LayoutContext context ) {
+  private static int computeVerticalHeight( AdaptionContext<?> context ) {
+    Rectangle visibleArea = context.getVisibleArea();
+    int baseHeight = context.isHorizontalBarVisible() ? visibleArea.height - MAX_EXPANSION  : visibleArea.height;
+    return baseHeight - borderOffset( context );
+  }
+
+  private void layoutHorizontal( AdaptionContext<?> context ) {
     if( context.isHorizontalBarVisible() ) {
-      Rectangle visibleArea = context.getVisibleArea();
-      int hWidth = context.isVerticalBarVisible() ? visibleArea.width - MAX_EXPANSION : visibleArea.width;
-      horizontal.setBounds( 0, visibleArea.height - BAR_BREADTH, hWidth, BAR_BREADTH );
+      int y = context.getVisibleArea().height - barBreadth( context ) - borderOffset( context );
+      int width = computeHorizontalWidth( context );
+      horizontal.setBounds( 0, y, width, barBreadth( context ) );
       horizontal.setVisible( true );
     } else {
       horizontal.setVisible( false );
@@ -51,14 +69,32 @@ class OverlayLayouter {
     }
   }
 
-  private void layoutCornerOverlay( LayoutContext context ) {
+  private static int computeHorizontalWidth( AdaptionContext<?> context ) {
+    Rectangle visibleArea = context.getVisibleArea();
+    int baseWidth = context.isVerticalBarVisible() ? visibleArea.width - MAX_EXPANSION : visibleArea.width;
+    return baseWidth - borderOffset( context ) ;
+  }
+
+  private void layoutCornerOverlay( AdaptionContext<?> context ) {
     cornerOverlay.setBounds( calculateCornerOverlayBounds( horizontal, vertical, context ) );
   }
 
-  static Rectangle calculateCornerOverlayBounds( FlatScrollBar horizontal, FlatScrollBar vertical, LayoutContext context  ) {
+  static Rectangle calculateCornerOverlayBounds(
+    FlatScrollBar horizontal, FlatScrollBar vertical, AdaptionContext<?> context )
+  {
     Point hSize = horizontal.getSize();
     Point vSize = vertical.getSize();
-    return new Rectangle( hSize.x, vSize.y, vSize.x + context.getOffset(), hSize.y );
+    int borderWidth = context.getBorderWidth();
+    int width = vSize.x + context.getOffset() + borderWidth + CORNER_COVERAGE;
+    int height = hSize.y + borderWidth + CORNER_COVERAGE;
+    return new Rectangle( hSize.x, vSize.y, width, height );
   }
 
+  private static int borderOffset( AdaptionContext<?> context ) {
+    return context.getBorderWidth() * 2;
+  }
+
+  private static int barBreadth( AdaptionContext<?> context ) {
+    return context.get( Demeanor.class ).getBarBreadth();
+  }
 }

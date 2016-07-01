@@ -1,10 +1,21 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.core.runtime.internal;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import com.codeaffine.eclipse.core.runtime.ExecutableExtensionConfigurator;
+import com.codeaffine.eclipse.core.runtime.Extension;
 import com.codeaffine.eclipse.core.runtime.ExtensionExceptionHandler;
-import com.codeaffine.eclipse.core.runtime.Predicate;
 
 public interface Operator<T> {
 
@@ -28,5 +39,5 @@ public interface Operator<T> {
   public interface CreateExecutableExtensionsOperator<T>
     extends ReadExtensionsOperator<T>, ExecutableExtensionConfiguration<T> {}
 
-  void setPredicate( Predicate predicate );
+  void setPredicate( Predicate<Extension> predicate );
 }

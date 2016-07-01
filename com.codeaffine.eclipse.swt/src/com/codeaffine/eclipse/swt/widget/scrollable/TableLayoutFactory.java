@@ -1,50 +1,53 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollable;
 
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Table;
 
+import com.codeaffine.eclipse.swt.widget.scrollable.context.AdaptionContext;
 import com.codeaffine.eclipse.swt.widget.scrollbar.FlatScrollBar;
 
 class TableLayoutFactory extends ScrollableLayoutFactory<Table> {
 
-  static class TableLayoutContextFactory implements LayoutContextFactory {
-
-    private final Table table;
-
-    TableLayoutContextFactory( Table table ) {
-      this.table = table;
-    }
-
-    @Override
-    public LayoutContext create() {
-      return new LayoutContext( table, table.getItemHeight() );
-    }
+  @Override
+  public Layout create( AdaptionContext<Table> context, FlatScrollBar horizontal, FlatScrollBar vertical ) {
+    ScrollableLayouter layouter = new StructuredScrollableLayouter( context.getScrollable() );
+    return new ScrollableLayout( newContext( context ), layouter, horizontal, vertical, getCornerOverlay() );
   }
 
   @Override
-  public Layout create( Table table, FlatScrollBar horizontal, FlatScrollBar vertical, Label cornerOverlay ) {
-    return new ScrollableLayout<Table>( table, createContextFactory( table ), horizontal, vertical, cornerOverlay );
+  public SelectionListener createHorizontalSelectionListener( AdaptionContext<Table> context ) {
+    return new StructuredScrollableHorizontalSelectionListener( context );
   }
 
   @Override
-  public SelectionListener createHorizontalSelectionListener( Table table ) {
-    return new HorizontalSelectionListener( table );
+  public SelectionListener createVerticalSelectionListener( AdaptionContext<Table> context ) {
+    return new TableVerticalSelectionListener( context.getScrollable().getControl() );
   }
 
   @Override
-  public SelectionListener createVerticalSelectionListener( Table table ) {
-    return new TableVerticalSelectionListener( table );
+  public DisposeListener createWatchDog(
+    AdaptionContext<Table> context, FlatScrollBar horizontal, FlatScrollBar vertical )
+  {
+    Table control = context.getScrollable().getControl();
+    ScrollBarUpdater horizontalUpdater = new StructuredScrollableHorizontalScrollBarUpdater( context, horizontal );
+    ScrollBarUpdater verticalUpdater = new TableVerticalScrollBarUpdater( control, vertical );
+    SizeObserver sizeObserver = new StructuredScrollableSizeObserver();
+    return new WatchDog( newContext( context ), horizontalUpdater, verticalUpdater, sizeObserver );
   }
 
-  @Override
-  public DisposeListener createWatchDog( Table table, FlatScrollBar horizontal, FlatScrollBar vertical ) {
-    return new WatchDog( table, createContextFactory( table ), new TableVerticalScrollBarUpdater( table, vertical ) );
-  }
-
-  private static TableLayoutContextFactory createContextFactory( Table table ) {
-    return new TableLayoutContextFactory( table );
+  private static AdaptionContext<Table> newContext( AdaptionContext<Table> context ) {
+    return context.newContext( context.getScrollable().getItemHeight() );
   }
 }

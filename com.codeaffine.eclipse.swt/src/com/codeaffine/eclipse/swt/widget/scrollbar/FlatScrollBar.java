@@ -1,4 +1,16 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.eclipse.swt.widget.scrollbar;
+
+import static com.codeaffine.eclipse.swt.widget.scrollbar.UntypedSelectionAdapter.lookup;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -6,11 +18,16 @@ import java.util.HashSet;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Listener;
 
 public class FlatScrollBar extends Composite {
+
+  public static final int BAR_BREADTH = 6;
 
   static final int DEFAULT_MINIMUM = 0;
   static final int DEFAULT_MAXIMUM = 100;
@@ -29,7 +46,6 @@ public class FlatScrollBar extends Composite {
   final Direction direction;
   final MouseWheelShifter mouseWheelHandler;
   final Collection<SelectionListener> listeners;
-  final int buttonLength;
 
   private int minimum;
   private int maximum;
@@ -38,12 +54,13 @@ public class FlatScrollBar extends Composite {
   private int thumb;
   private int selection;
   private boolean onDrag;
+  private int buttonLength;
 
   public FlatScrollBar( final Composite parent, int style ) {
     this( parent, style, DEFAULT_BUTTON_LENGTH, DEFAULT_MAX_EXPANSION );
   }
 
-  FlatScrollBar( final Composite parent, int style, int buttonLength, int maxExpansion ) {
+  FlatScrollBar( Composite parent, int style, int buttonLength, int maxExpansion ) {
     super( parent, SWT.NONE );
     super.setLayout( new FlatScrollBarLayout( getDirection( style ) ) );
     this.minimum = DEFAULT_MINIMUM;
@@ -64,6 +81,7 @@ public class FlatScrollBar extends Composite {
     this.listeners = new HashSet<SelectionListener>();
     addMouseTrackListener( new MouseTracker( this, maxExpansion ) );
     addControlListener( new ResizeObserver( this ) );
+    setDefaultColorScheme();
   }
 
   @Override
@@ -157,9 +175,72 @@ public class FlatScrollBar extends Composite {
   }
 
   @Override
+  public void addListener( int eventType, final Listener listener ) {
+    if( eventType == SWT.Selection ) {
+      addSelectionListener( new UntypedSelectionAdapter( listener ) );
+    } else {
+      super.addListener( eventType, listener );
+    }
+  }
+
+  @Override
+  public void removeListener( int eventType, Listener listener ) {
+    if( eventType == SWT.Selection ) {
+      removeSelectionListener( lookup( listeners, listener ) );
+    } else {
+      super.removeListener( eventType, listener );
+    }
+  }
+
+  @Override
   public void layout() {
     direction.layout( this, buttonLength );
     update();
+  }
+
+  public void setIncrementButtonLength( int length ) {
+    this.buttonLength = length;
+    layout();
+  }
+
+  public int getIncrementButtonLength() {
+    return buttonLength;
+  }
+
+  public void setIncrementColor( Color color ) {
+    up.setForeground( color );
+    down.setForeground( color );
+  }
+
+  public Color getIncrementColor() {
+    return up.getForeground();
+  }
+
+  public void setPageIncrementColor( Color color ) {
+    upFast.setForeground( color );
+    downFast.setForeground( color );
+  }
+
+  public Color getPageIncrementColor() {
+    return upFast.getForeground();
+  }
+
+  public void setThumbColor( Color color ) {
+    drag.setForeground( color );
+  }
+
+  public Color getThumbColor() {
+    return drag.getForeground();
+  }
+
+  @Override
+  public void setBackground( Color color ) {
+    up.setBackground( color );
+    upFast.setBackground( color );
+    drag.setBackground( color );
+    downFast.setBackground( color );
+    down.setBackground( color );
+    super.setBackground( color );
   }
 
   protected void setSelectionInternal( int selection, int detail ) {
@@ -211,5 +292,14 @@ public class FlatScrollBar extends Composite {
 
   private static Direction getDirection( int style ) {
     return ( style & SWT.HORIZONTAL ) > 0 ? Direction.HORIZONTAL : Direction.VERTICAL;
+  }
+
+  private void setDefaultColorScheme() {
+    up.setForeground( Display.getCurrent().getSystemColor( SWT.COLOR_WIDGET_NORMAL_SHADOW ) );
+    upFast.setForeground( Display.getCurrent().getSystemColor( SWT.COLOR_WIDGET_BACKGROUND ) );
+    drag.setForeground( Display.getCurrent().getSystemColor( SWT.COLOR_WIDGET_FOREGROUND ) );
+    downFast.setForeground( Display.getCurrent().getSystemColor( SWT.COLOR_WIDGET_BACKGROUND ) );
+    down.setForeground( Display.getCurrent().getSystemColor( SWT.COLOR_WIDGET_NORMAL_SHADOW ) );
+    setBackground( getBackground() );
   }
 }

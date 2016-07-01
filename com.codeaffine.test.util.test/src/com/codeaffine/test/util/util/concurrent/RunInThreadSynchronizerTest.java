@@ -1,6 +1,16 @@
+/**
+ * Copyright (c) 2014 - 2016 Frank Appel
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *   Frank Appel - initial API and implementation
+ */
 package com.codeaffine.test.util.util.concurrent;
 
-import static com.codeaffine.test.util.lang.ThrowableCaptor.thrown;
+import static com.codeaffine.test.util.lang.ThrowableCaptor.thrownBy;
 import static java.lang.Thread.currentThread;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
@@ -12,8 +22,6 @@ import java.util.concurrent.Executors;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import com.codeaffine.test.util.lang.ThrowableCaptor.Actor;
 
 public class RunInThreadSynchronizerTest {
 
@@ -41,14 +49,9 @@ public class RunInThreadSynchronizerTest {
   @Test
   public void runWithProblem() {
     RuntimeException expected = new RuntimeException();
-    final Runnable runnable = stubRunnableWithProblem( expected );
+    Runnable runnable = stubRunnableWithProblem( expected );
 
-    Throwable actual = thrown( new Actor() {
-      @Override
-      public void act() throws Throwable {
-        synchronizer.run( executor, runnable );
-      }
-    } );
+    Throwable actual = thrownBy( () -> synchronizer.run( executor, runnable ) );
 
     assertThat( executor.isShutdown() ).isTrue();
     assertThat( actual.getCause().getCause() ).isSameAs( expected );
